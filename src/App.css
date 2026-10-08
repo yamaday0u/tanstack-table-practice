@@ -1,0 +1,7 @@
+body { font-family: sans-serif; margin: 0; }
+.container { max-width: 640px; margin: 40px auto; padding: 0 16px; }
+input { padding: 6px 8px; margin-bottom: 12px; width: 240px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+th { background: #f3f3f3; cursor: pointer; user-select: none; }
+.pagination { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
