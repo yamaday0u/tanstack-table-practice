@@ -6,6 +6,8 @@ import {
   createSortedRowModel,
   filterFn_includesString,
   globalFilteringFeature,
+  type Header,
+  type HeaderGroup,
   rowPaginationFeature,
   rowSortingFeature,
   sortFn_alphanumeric,
@@ -77,6 +79,15 @@ const columns = columnHelper.columns([
   columnHelper.accessor('department', { header: '部署' }),
 ])
 
+// 上の段の placeholder から rowSpan で縦に結合済みの、下の段の本物のヘッダーか
+// （グループに属さない列は、本来の段より下の段にも本物のヘッダーが作られるため）
+function isAlreadyMergedIntoPlaceholderAbove(
+  header: Header<typeof features, Person>,
+  headerGroup: HeaderGroup<typeof features, Person>,
+) {
+  return !header.isPlaceholder && headerGroup.depth > header.column.depth
+}
+
 export default function App() {
   // 5. テーブルインスタンスを作成
   //    ソート・検索・ページの状態はテーブル自身が持ち、table.state で読める
@@ -87,6 +98,9 @@ export default function App() {
     globalFilterFn: 'includesString',
     initialState: { pagination: { pageIndex: 0, pageSize: 5 } },
   })
+
+  // ヘッダーの段（rowSpan の計算に段数を使う）
+  const headerGroups = table.getHeaderGroups()
 
   // 6. テーブルインスタンスから取得した情報でUIを描画（UIは自分で書く＝ヘッドレス）
   return (
@@ -101,23 +115,24 @@ export default function App() {
 
       <table>
         <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
+          {headerGroups.map((headerGroup) => (
             <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  colSpan={header.colSpan} // グループ列のヘッダーは子の列数分、横に広がる
-                  onClick={header.column.getToggleSortingHandler()}
-                >
-                  {/* グループに属さない列は上の段に空のヘッダー（placeholder）ができるので何も描画しない */}
-                  {header.isPlaceholder ? null : (
-                    <>
-                      <table.FlexRender header={header} />
-                      {{ asc: ' ▲', desc: ' ▼' }[header.column.getIsSorted() as string] ?? ''}
-                    </>
-                  )}
-                </th>
-              ))}
+              {headerGroup.headers.map((header) => {
+                // ヘッダーの縦方向の結合のために、描画する必要のないヘッダーを除外
+                if (isAlreadyMergedIntoPlaceholderAbove(header, headerGroup)) return null
+
+                return (
+                  <th
+                    key={header.id}
+                    colSpan={header.colSpan} // グループ列のヘッダーは子の列数分、横に広がる
+                    rowSpan={header.isPlaceholder ? headerGroups.length - headerGroup.depth : 1}
+                    onClick={header.column.getToggleSortingHandler()}
+                  >
+                    <table.FlexRender header={header} />
+                    {{ asc: ' ▲', desc: ' ▼' }[header.column.getIsSorted() as string] ?? ''}
+                  </th>
+                )
+              })}
             </tr>
           ))}
         </thead>
