@@ -33,6 +33,8 @@ const defaultData: Person[] = [
   { id: 6, familyName: '渡辺', firstName: '六郎', age: 39, department: '開発' },
   { id: 7, familyName: '山本', firstName: '七郎', age: 26, department: '人事' },
   { id: 8, familyName: '中村', firstName: '八郎', age: 45, department: '営業' },
+  { id: 9, familyName: '小林', firstName: '九郎', age: 29, department: '開発' },
+  { id: 10, familyName: '加藤', firstName: '十郎', age: 33, department: '人事' },
 ]
 
 // 3. 使う機能を登録する（v9では必要な機能だけを明示的に選ぶ）
@@ -54,14 +56,17 @@ const features = tableFeatures({
 
 // 4. 列定義（columnHelperを使うと型推論が効く）
 const columnHelper = createColumnHelper<typeof features, Person>()
-
 const columns = columnHelper.columns([
   // ID
   columnHelper.accessor('id', { header: 'ID' }),
-  // 氏名
-  columnHelper.accessor((row) => `${row.familyName} ${row.firstName}`, {
-    id: 'fullName',
+  // 氏名（グループ列：子の列が2つなので、ヘッダーが colSpan=2 になる）
+  columnHelper.group({
+    id: 'name',
     header: '氏名',
+    columns: columnHelper.columns([
+      columnHelper.accessor('familyName', { header: '姓' }),
+      columnHelper.accessor('firstName', { header: '名' }),
+    ]),
   }),
   // 年齢
   columnHelper.accessor('age', {
@@ -86,7 +91,7 @@ export default function App() {
   // 6. テーブルインスタンスから取得した情報でUIを描画（UIは自分で書く＝ヘッドレス）
   return (
     <div className="container">
-      <h1>TanStack Table 入門</h1>
+      <h1>TanStack Table 入門ダヨ</h1>
 
       <input
         value={table.state.globalFilter ?? ''}
@@ -101,10 +106,16 @@ export default function App() {
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
+                  colSpan={header.colSpan} // グループ列のヘッダーは子の列数分、横に広がる
                   onClick={header.column.getToggleSortingHandler()}
                 >
-                  <table.FlexRender header={header} />
-                  {{ asc: ' ▲', desc: ' ▼' }[header.column.getIsSorted() as string] ?? ''}
+                  {/* グループに属さない列は上の段に空のヘッダー（placeholder）ができるので何も描画しない */}
+                  {header.isPlaceholder ? null : (
+                    <>
+                      <table.FlexRender header={header} />
+                      {{ asc: ' ▲', desc: ' ▼' }[header.column.getIsSorted() as string] ?? ''}
+                    </>
+                  )}
                 </th>
               ))}
             </tr>
