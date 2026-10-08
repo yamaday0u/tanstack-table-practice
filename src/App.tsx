@@ -14,7 +14,6 @@ import {
   tableFeatures,
   useTable,
 } from '@tanstack/react-table'
-import './App.css'
 
 // 1. 行データの型
 type Person = {
@@ -77,6 +76,23 @@ const columns = columnHelper.columns([
   }),
   // 部署
   columnHelper.accessor('department', { header: '部署' }),
+  // ボタン
+  // display 列：データを持たない表示専用の列（ボタンなど）。accessor がないので id が必須
+  columnHelper.display({
+    id: 'actions',
+    header: '操作',
+    cell: (info) => (
+      <button
+        className="rounded bg-blue-600 px-2 py-1 text-sm text-white hover:bg-blue-700"
+        onClick={() => {
+          const { familyName, firstName } = info.row.original
+          alert(`${familyName} ${firstName} さんが選択されました`)
+        }}
+      >
+        詳細
+      </button>
+    ),
+  }),
 ])
 
 // 上の段の placeholder から rowSpan で縦に結合済みの、下の段の本物のヘッダーか
@@ -104,16 +120,17 @@ export default function App() {
 
   // 6. テーブルインスタンスから取得した情報でUIを描画（UIは自分で書く＝ヘッドレス）
   return (
-    <div className="container">
-      <h1>TanStack Table 入門ダヨ</h1>
+    <div className="mx-auto my-10 max-w-2xl px-4 font-sans">
+      <h1 className="mb-6 text-2xl font-bold">TanStack Table 入門ダヨ</h1>
 
       <input
+        className="mb-3 w-60 rounded border border-gray-300 px-2 py-1.5"
         value={table.state.globalFilter ?? ''}
         onChange={(e) => table.setGlobalFilter(e.target.value)}
         placeholder="キーワードで絞り込み..."
       />
 
-      <table>
+      <table className="w-full border-collapse">
         <thead>
           {headerGroups.map((headerGroup) => (
             <tr key={headerGroup.id}>
@@ -124,6 +141,7 @@ export default function App() {
                 return (
                   <th
                     key={header.id}
+                    className="cursor-pointer select-none border border-gray-300 bg-gray-100 p-2 text-left"
                     colSpan={header.colSpan} // グループ列のヘッダーは子の列数分、横に広がる
                     rowSpan={header.isPlaceholder ? headerGroups.length - headerGroup.depth : 1}
                     onClick={header.column.getToggleSortingHandler()}
@@ -140,7 +158,7 @@ export default function App() {
           {table.getRowModel().rows.map((row) => (
             <tr key={row.id}>
               {row.getAllCells().map((cell) => (
-                <td key={cell.id}>
+                <td key={cell.id} className="border border-gray-300 p-2">
                   <table.FlexRender cell={cell} />
                 </td>
               ))}
@@ -149,8 +167,9 @@ export default function App() {
         </tbody>
       </table>
 
-      <div className="pagination">
+      <div className="mt-3 flex items-center gap-3">
         <button
+          className="rounded border border-gray-300 px-3 py-1 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
@@ -160,6 +179,7 @@ export default function App() {
           {table.state.pagination.pageIndex + 1} / {table.getPageCount()}
         </span>
         <button
+          className="rounded border border-gray-300 px-3 py-1 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >

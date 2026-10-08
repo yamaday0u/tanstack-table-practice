@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@layer base {
+  /* Tailwind v4 の Preflight はボタンのカーソルを default にするので、指カーソルに戻す */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
